@@ -1,0 +1,23 @@
+clear
+tic
+img1 = imread('images/boat/img1.pgm');
+img2 = imread('images/boat/img2.pgm');
+
+[~, poi1, strength1] = harris_detector(img1, 1, 150/255, 10, 0);
+[~, poi2, strength2] = harris_detector(img2, 1, 150/255, 10, 0);
+
+[feat1, validpts1] = extractFeatures(img1, poi1, 'Method', 'Block', 'BlockSize', 31);
+[feat2, validpts2] = extractFeatures(img2, poi2, 'Method', 'Block', 'BlockSize', 31);
+
+hist1 = hist(double(feat1), 255)';
+hist2 = hist(double(feat2), 255)';
+
+map = nnMatch(hist1,hist2);
+
+matchedpts1 = validpts1(map(:,1),:);
+matchedpts2 = validpts2(map(:,2),:);
+
+figure; ax = axes;
+showMatchedFeatures(img1,img2,m,matchedPoints2,'montage','Parent',ax);
+
+toc

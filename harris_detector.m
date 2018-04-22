@@ -1,4 +1,4 @@
-function [harrCorn, poi, ptsStr] = harris_detector(img, sigma, thresh, radius, disp)
+function [harrCorn, poi, ptsStr] = harris_detector(img, sigma, qual, radius, method, disp)
     if isinteger(img)
         img = im2double(img);
     end
@@ -19,16 +19,19 @@ function [harrCorn, poi, ptsStr] = harris_detector(img, sigma, thresh, radius, d
     Ix2 = conv2(Ix.^2, g, 'same'); % Smoothed squared image derivatives
     Iy2 = conv2(Iy.^2, g, 'same');
     Ixy = conv2(Ix.*Iy, g, 'same');
-    
+        
     harrCorn = (Ix2.*Iy2 - Ixy.^2)./(Ix2 + Iy2 + eps); % Harris corner measure
     harrCorn = abs(harrCorn);
     harrCorn = harrCorn/max(harrCorn(:));
-    % harrCorn = (Ix2.*Iy2 - Ixy.^2) - k*(Ix2 + Iy2).^2;       
-
+    if method == 1
+        k = 0.04;
+        harrCorn = (Ix2.*Iy2 - Ixy.^2) - k*(Ix2 + Iy2).^2;       
+    end
+    thresh = qual*max(harrCorn(:));
     % Non-maximum suppression
     sze = 2*radius+1;                   % Size of mask.
     Mc = ordfilt2(harrCorn,sze^2,ones(sze)); % Grey-scale dilate.
-    harrCorn((harrCorn~=Mc)|(harrCorn<=thresh)) = 0;       % Find maxima.        
+    harrCorn((harrCorn<Mc)|(harrCorn<thresh)) = 0;       % Find maxima.        
     [r,c] = find(harrCorn);                  % Find row,col coords.        
     if disp      % overlay corners on original image
         figure
@@ -43,7 +46,8 @@ function [harrCorn, poi, ptsStr] = harris_detector(img, sigma, thresh, radius, d
     ptsStr = [];
     for i = 1:length(r)
         ptsStr = [ptsStr; harrCorn(poi(i,1), poi(i,2))];
-    end        
+    end  
+%     poi = poi'; ptsStr = ptsStr';
 end
 
 
