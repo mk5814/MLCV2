@@ -16,7 +16,7 @@ poi2 = myHarris(I2,qual);
 [f1, validpts1] = extractFeatures(I1, poi1);
 [f2, validpts2] = extractFeatures(I2, poi2);
 
-map = nnMatch(f1, f2, 0.4);
+map = nnMatch(f1, f2, 0.45);
 
 matchedPoints1 = validpts1(map(:,1),:);
 matchedPoints2 = validpts2(map(:,2),:);

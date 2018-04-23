@@ -1,4 +1,0 @@
-function [warped_image,offsets] = homography_transform( I, H )
-    t = maketform( H', 'projective');
-    imOut = imwar(I,t);   
-end

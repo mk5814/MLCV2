@@ -1,4 +1,4 @@
-function [map] = nnMatch( f1, f2, maxRatio )
+function [map] = nnMatch( f1, f2, maxRatio)
 % map: Nx4 matrix
 %      column 1 - index in f1
 %      column 2 - index in f2
@@ -34,6 +34,8 @@ map(zeroIdx,3:4) = 1;
 
 ratio = map(:, 3) ./ map(:,4);
 idx = (ratio <= maxRatio);
+% disp(sum(map(:,3) < outlierTh*max(map(:,3))))
+% idx = (ratio <= maxRatio) & (map(:,3) < outlierTh*max(map(:,3)));
 % All map(zeroIdx) will have ratio = 1 > ambigTh and will be removed
 map = map(idx,:);
 newmap = zeros(1,4);

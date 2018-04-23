@@ -1,6 +1,13 @@
+
+if ~exist('matched
 q1_2;
 
-homogMatrix = homography_solve(matchedPoints1', matchedPoints2');
-im2 = homography_transform(I2,homogMatrix);
+homogMatrix = homography_solve(matchedPoints2', matchedPoints1');
+I3 = homography_transform(I2,homogMatrix);
 
-imshow(im2)
+figure;
+imshow(I1);
+figure;
+imshow(I2);
+figure;
+imshow(I3);
