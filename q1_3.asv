@@ -1,0 +1,6 @@
+q1_2;
+
+homogMatrix = homography_solve(matchedPoints1', matchedPoints2');
+im2 = homography_transform(I2,homogMatrix);
+
+imshow(im2)
