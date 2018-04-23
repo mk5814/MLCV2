@@ -1,38 +1,41 @@
-function [map] = nnMatch( hist1, hist2, ambigTh )
+function [map] = nnMatch( f1, f2, maxRatio, maxThresh )
 % map: Nx4 matrix
-%      column 1 - index in hist1
-%      column 2 - index in hist2
-%      column 3 - distance from point in hist1 to closest in hist2
-%      column 4 - distance from point in hist1 to 2nd closest in hist2
+%      column 1 - index in f1
+%      column 2 - index in f2
+%      column 3 - distance from point in f1 to closest in f2
+%      column 4 - distance from point in f1 to 2nd closest in f2
 
-hist1 = (normalize(hist1'))';
-hist2 = (normalize(hist2'))';
+f1 = (normalize(f1'))';
+f2 = (normalize(f2'))';
 
-for i = 1:size(hist1,1)
-    for j = 1:size(hist2,1)
-        X = hist1(i,:) - hist2(j,:);
+
+% Calculate SSD(sum of squared differences)
+for i = 1:size(f1,1)
+    for j = 1:size(f2,1)
+        X = f1(i,:) - f2(j,:);
         dist(j) = sum(X(:).^2);
     end
      
-    [metric, pair] = min(dist);
-    dist(pair) = inf;
-    metric2 = min(dist);
+    [dists, match] = min(dist);
+    dist(match) = inf;
+    ratios = min(dist);
     map(i,1) = i;
-    map(i,2) = pair;
-    map(i,3) = metric;
-    map(i,4) = metric2;
+    map(i,2) = match;
+    map(i,3) = dists;
+    map(i,4) = ratios;
     
 end
 
 %Remove Ambiguous matches
 %Handle divide by 0
 
-zeroIdx = (map(:, 4) < 1e-6);
+zeroIdx = (map(:, 4) < eps);
 map(zeroIdx,3:4) = 1;
 
 ratio = map(:, 3) ./ map(:,4);
-idx = (ratio <= ambigTh);
-% All map(zeroIdx) will have ratio = 1 > 0.6 and will be removed
+% idx = (ratio <= maxRatio);
+idx = (ratio <= maxRatio) & (map(:,3) < maxThresh*size(f1,2));
+% All map(zeroIdx) will have ratio = 1 > ambigTh and will be removed
 map = map(idx,:);
 newmap = zeros(1,4);
 

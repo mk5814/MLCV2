@@ -1,4 +1,4 @@
-function [harrCorn, poi, ptsStr] = harris_detector(img, sigma, qual, radius, method, disp)
+function [harrCorn, poi, ptsStr] = harris_detector(img, qual, radius, method, disp)
     if isinteger(img)
         img = im2double(img);
     end
@@ -6,15 +6,14 @@ function [harrCorn, poi, ptsStr] = harris_detector(img, sigma, qual, radius, met
         img = rgb2gray(img); %should i maybe use ycbcr
     end
     
-    dx = [-1 0 1; -1 0 1; -1 0 1]; % Derivative masks
+    dx = [-1 0 1];
     dy = dx';
     
     Ix = conv2(img, dx, 'same');    % Image derivatives
     Iy = conv2(img, dy, 'same');    
 
-    % Generate Gaussian filter of size 6*sigma (+/- 3sigma) and of
-    % minimum size 1x1.
-    g = fspecial('gaussian',max(1,fix(6*sigma)), sigma);
+    % g = fspecial('gaussian',max(1,fix(6*sigma)), sigma);
+    g =  [0.03 0.105 0.222 0.286 0.222 0.105 0.03];
     
     Ix2 = conv2(Ix.^2, g, 'same'); % Smoothed squared image derivatives
     Iy2 = conv2(Iy.^2, g, 'same');
@@ -31,7 +30,13 @@ function [harrCorn, poi, ptsStr] = harris_detector(img, sigma, qual, radius, met
     % Non-maximum suppression
     sze = 2*radius+1;                   % Size of mask.
     Mc = ordfilt2(harrCorn,sze^2,ones(sze)); % Grey-scale dilate.
-    harrCorn((harrCorn<Mc)|(harrCorn<thresh)) = 0;       % Find maxima.        
+    harrCorn((harrCorn<Mc)|(harrCorn<thresh)) = 0;       % Find maxima.  
+    
+    % Exclude points very close to image boundaries
+    harrCorn(1:3,:) = 0;
+    harrCorn(end-2:end,:) = 0;
+    harrCorn(:,1:3) = 0;
+    harrCorn(:,end-2:end) = 0;
     [r,c] = find(harrCorn);                  % Find row,col coords.        
     if disp      % overlay corners on original image
         figure
