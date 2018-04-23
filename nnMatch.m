@@ -1,4 +1,4 @@
-function [map] = nnMatch( f1, f2, maxRatio, maxThresh )
+function [map] = nnMatch( f1, f2, maxRatio )
 % map: Nx4 matrix
 %      column 1 - index in f1
 %      column 2 - index in f2
@@ -13,16 +13,16 @@ f2 = (normalize(f2'))';
 for i = 1:size(f1,1)
     for j = 1:size(f2,1)
         X = f1(i,:) - f2(j,:);
-        dist(j) = sum(X(:).^2);
+        dists(j) = sum(X(:).^2);
     end
      
-    [dists, match] = min(dist);
-    dist(match) = inf;
-    ratios = min(dist);
+    [dist, match] = min(dists);
+    dists(match) = inf;
+    dist2 = min(dists);
     map(i,1) = i;
     map(i,2) = match;
-    map(i,3) = dists;
-    map(i,4) = ratios;
+    map(i,3) = dist;
+    map(i,4) = dist2;
     
 end
 
@@ -33,8 +33,7 @@ zeroIdx = (map(:, 4) < eps);
 map(zeroIdx,3:4) = 1;
 
 ratio = map(:, 3) ./ map(:,4);
-% idx = (ratio <= maxRatio);
-idx = (ratio <= maxRatio) & (map(:,3) < maxThresh*size(f1,2));
+idx = (ratio <= maxRatio);
 % All map(zeroIdx) will have ratio = 1 > ambigTh and will be removed
 map = map(idx,:);
 newmap = zeros(1,4);
