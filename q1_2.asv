@@ -2,15 +2,15 @@ addpath('harris')
 addpath('transformation')
 
 tic
-% I1 = imread('images/boat/img1.pgm');
-% I2 = imread('images/boat/img2.pgm');
-I1 = imread('images/tsukuba/scene1.row3.col1.ppm');
-I2 = imread('images/tsukuba/scene1.row3.col2.ppm');
+I1 = imread('images/boat/img1.pgm');
+I2 = imread('images/boat/img2.pgm');
+% I1 = imread('images/tsukuba/scene1.row3.col1.ppm');
+% I2 = imread('images/tsukuba/scene1.row3.col2.ppm');
 
-if length(size(I1)) == 3
-    I1 = rgb2gray(I1);
-    I2 = rgb2gray(I2);
-end
+if size(I1,
+
+I1 = rgb2gray(I1);
+I2 = rgb2gray(I2);
 
 I1 = im2single(I1);
 I2 = im2single(I2);

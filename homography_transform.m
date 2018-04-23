@@ -1,4 +1,4 @@
-function [imOut] = homography_transform( I, H )
-    t = maketform('projective', double(H'));
+function [imOut] = homography_transform( I, H , mode)
+    t = maketform(mode, double(H'));
     imOut = imtransform(I,t);   
 end
