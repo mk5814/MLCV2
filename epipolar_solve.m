@@ -1,4 +1,4 @@
-function [m, c] = epipolar_solve(F, xcord, ycord, Imsz)
+function [m, c] = epipolar_solve(F, xcord, ycord)
     % Find epipolar line in I2 given fundamental matrix
     ELcoeff = F*[xcord ycord 1]';
     m = -ELcoeff(1)/ELcoeff(2);

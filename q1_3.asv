@@ -4,7 +4,7 @@ if ~exist('matchedPoints1')
     q1_2;
 end
 
-mode = 2;
+mode = 3;
 
 if mode == 1
     H = homography_solve(matchedPoints2', matchedPoints1');
@@ -19,25 +19,54 @@ if mode == 1
     figure;
     imshow(I3);
 elseif mode == 2
-%     [F, inliers] = estimateFundamentalMatrix(matchedPoints1, matchedPoints2);
     [F, inliers] = estimateFundamentalMatrix(matchedPoints1,...
         matchedPoints2,'Method','RANSAC',...
         'NumTrials',2000,'DistanceThreshold',1e-4);
 
-    % Find random point in I1    
+    % Random test points in I1   
     ycord = round(size(I1,1)*rand(10,1));
-    xcord = round(size(I2,2)*rand(10,1));
+    xcord = round(size(I1,2)*rand(10,1));
+    M = []; C = [];
+    tic
     for i = 1:size(xcord,1)
-        [xpts,ypts,epleft,epright] = epipolar_solve(F,xcord(i),ycord(i));
+        [m,c] = epipolar_solve(F,xcord(i),ycord(i));
+        M = [M; m];
+        C = [C; c];
     end
+    toc
     figure(2)
     I3 = horzcat(I1,I2);
     imshow(I3);
     hold on
-    scatter(xcord,ycord,'marker','O','MarkerEdgeColor','yellow');    
-    plot(xPts(idx3)+size(I1,2),yPts(idx3), 'g');
-%     plot(xPts(idx3),yPts(idx3), 'g');
+    scatter(xcord,ycord,'marker','O','MarkerEdgeColor','yellow'); 
+    for i = 1:size(M,1)
+        draw_line(M(i), C(i), size(I2), size(I1,2)); hold on;        
+    end
     title('x-epipole, o-selected point');
     hold off    
+elseif mode == 3 % Calculate Fundamental Accuracy(FA)
+    [F, inliers] = estimateFundamentalMatrix(matchedPoints1,...
+        matchedPoints2,'Method','RANSAC',...
+        'NumTrials',2000,'DistanceThreshold',1e-4);
+    dist = 0;
+    for i = 1:length(inliers)
+        if inliers(i) == 1
+            [m,c] = epipolar_solve(F,matchedPoints1(1),yy);
+            pt = F*[i;yy;0];
+            pt = [i;yy;0];
+            pt = pt(1:2)';
+            d = point_to_line_distance(pt,m,c);
+            dist = dist+d;
+        end
+    end
+    dist = dist/sum(inliers);
+    
 end
+
+
+
+
+
+
+
         

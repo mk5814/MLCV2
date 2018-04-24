@@ -1,10 +1,9 @@
-clc
 if ~exist('matchedPoints1')
     clear
     q1_2;
 end
 
-mode = 2;
+mode = 3;
 
 if mode == 1
     H = homography_solve(matchedPoints2', matchedPoints1');
@@ -19,7 +18,6 @@ if mode == 1
     figure;
     imshow(I3);
 elseif mode == 2
-%     [F, inliers] = estimateFundamentalMatrix(matchedPoints1, matchedPoints2);
     [F, inliers] = estimateFundamentalMatrix(matchedPoints1,...
         matchedPoints2,'Method','RANSAC',...
         'NumTrials',2000,'DistanceThreshold',1e-4);
@@ -30,7 +28,7 @@ elseif mode == 2
     M = []; C = [];
     tic
     for i = 1:size(xcord,1)
-        [m,c] = epipolar_solve(F,xcord(i),ycord(i),size(I2));
+        [m,c] = epipolar_solve(F,xcord(i),ycord(i));
         M = [M; m];
         C = [C; c];
     end
@@ -43,7 +41,29 @@ elseif mode == 2
     for i = 1:size(M,1)
         draw_line(M(i), C(i), size(I2), size(I1,2)); hold on;        
     end
-    title('x-epipole, o-selected point');
+    title('o-selected point, -- epipolar line');
     hold off    
+elseif mode == 3 % Calculate Fundamental Accuracy(FA)
+    [F, inliers] = estimateFundamentalMatrix(matchedPoints1,...
+        matchedPoints2,'Method','RANSAC',...
+        'NumTrials',2000,'DistanceThreshold',1e-4);
+    FA = 0;
+    for i = 1:size(matchedPoints1,1)
+%         if inliers(i) == 1
+            [m,c] = epipolar_solve(F,matchedPoints1(i,1),matchedPoints1(i,2));
+            d = point_to_line_distance(matchedPoints2(i,:),m,c);
+            FA = FA+d;
+%         end
+    end
+    % FA = FA/sum(inliers);
+    FA = FA/size(matchedPoints1,1);
+    fprintf('Fundamental Accuracy = %.3f\n',FA);
 end
+
+
+
+
+
+
+
         
