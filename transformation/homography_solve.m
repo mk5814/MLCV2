@@ -16,5 +16,5 @@ function H = homography_solve(matchedPoints1, matchedPoints2)
 
     [U, ~, ~] = svd(h, 'econ');
 
-    H = (reshape(U(:,9), 3, 3)).';
+    H = (reshape(U(:,end), 3, 3)).';
 end

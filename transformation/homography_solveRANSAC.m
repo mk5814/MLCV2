@@ -4,7 +4,8 @@ function H = homography_solveRANSAC(mp1, mp2, ransacTh)
     numTrials = 500;
     inliers = cell(1,numTrials);
     for i = 1:numTrials    
-        idx = randperm(size(mp1,1),5);
+        K = min(size(mp1,1),5);
+        idx = randperm(size(mp1,1),K);
         mp11 = mp1(idx,:);
         mp22 = mp2(idx,:);
         % Compute Homography
@@ -31,22 +32,22 @@ function H = homography_solveRANSAC(mp1, mp2, ransacTh)
 end
 
 % Without RANSAC:
-function H = homog_solve(matchedPoints1, matchedPoints2)
-    n = size(matchedPoints1, 2);
+function H = homog_solve(MP1, MP2)  
+    n = size(MP1, 2);
+    if n < 4
+        error('Need at least 4 matching points');
+    end
     % Solve equations using SVD
-    x = matchedPoints2(1,:); 
-    y = matchedPoints2(2,:); 
-    X = matchedPoints1(1,:); 
-    Y = matchedPoints1(2,:);
-
+    x = MP2(1, :); y = MP2(2,:); X = MP1(1,:); Y = MP1(2,:);
     rows0 = zeros(3, n);
     rowsXY = -[X; Y; ones(1,n)];
-
     hx = [rowsXY; rows0; x.*X; x.*Y; x];
     hy = [rows0; rowsXY; y.*X; y.*Y; y];
     h = [hx hy];
-
-    [U, ~, ~] = svd(h, 'econ');
-
+    if n == 4
+        [U, ~, ~] = svd(h);
+    else
+        [U, ~, ~] = svd(h, 'econ');
+    end
     H = (reshape(U(:,9), 3, 3)).';
 end
