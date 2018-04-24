@@ -3,20 +3,23 @@ if ~exist('matchedPoints1')
     q1_2;
 end
 
-mode = 3;
-
+mode = 1;
+vis = 1;
+ransacTh = 1;
 if mode == 1
-    H = homography_solve(matchedPoints2', matchedPoints1');
+    H = homography_solveRANSAC(matchedPoints2, matchedPoints1, ransacTh);
+    % H = homography_solve(matchedPoints2', matchedPoints1');
     [HA, I2proj] = homography_accuracy(H, matchedPoints2, matchedPoints1);
-    fprintf('HA = %.1f\n',HA)
-
-    I3 = homography_transform(I2,H,'projective');
-    figure;
-    imshow(I1);
-    figure;
-    imshow(I2);
-    figure;
-    imshow(I3);
+    fprintf('HA = %.1f\n',HA)    
+    if vis
+        I3 = homography_transform(I2,H,'projective');
+        figure;
+        imshow(I1);
+        figure;
+        imshow(I2);
+        figure;
+        imshow(I3);
+    end
 elseif mode == 2
     [F, inliers] = estimateFundamentalMatrix(matchedPoints1,...
         matchedPoints2,'Method','RANSAC',...
@@ -47,16 +50,7 @@ elseif mode == 3 % Calculate Fundamental Accuracy(FA)
     [F, inliers] = estimateFundamentalMatrix(matchedPoints1,...
         matchedPoints2,'Method','RANSAC',...
         'NumTrials',2000,'DistanceThreshold',1e-4);
-    FA = 0;
-    for i = 1:size(matchedPoints1,1)
-%         if inliers(i) == 1
-            [m,c] = epipolar_solve(F,matchedPoints1(i,1),matchedPoints1(i,2));
-            d = point_to_line_distance(matchedPoints2(i,:),m,c);
-            FA = FA+d;
-%         end
-    end
-    % FA = FA/sum(inliers);
-    FA = FA/size(matchedPoints1,1);
+    FA = fundamental_accuracy(F, matchedPoints1, matchedPoints2);
     fprintf('Fundamental Accuracy = %.3f\n',FA);
 end
 
