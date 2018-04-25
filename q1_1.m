@@ -3,7 +3,7 @@ close all
 
 %% Begin program
 
-numPoints = 5;
+numPoints = 10;
 
 im1 = imread('images/boat/img1.pgm');
 im2 = imread('images/boat/img2.pgm');
@@ -13,21 +13,21 @@ imshow(im1);
 figure(2);
 imshow(im2);
 
-im1pts = [];
-im2pts = [];
+MP1 = [];
+MP2 = [];
 
 for i = 1:numPoints
     figure(1);
     [x,y] = ginput(1);
-    im1pts = [im1pts;[x,y]];
+    MP1 = [MP1;[x,y]];
     
     figure(2);
     [x,y] = ginput(1);
-    im2pts = [im2pts;[x,y]];
+    MP2 = [MP2;[x,y]];
 end
 close all;
 
-save('images/boat_img1','im1pts','im2pts');
+save('images/boat_img1_2','MP1','MP2');
 
 
 

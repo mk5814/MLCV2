@@ -4,7 +4,7 @@ function H = homography_solveRANSAC(mp1, mp2, ransacTh)
     numTrials = 500;
     inliers = cell(1,numTrials);
     for i = 1:numTrials    
-        K = min(size(mp1,1),5);
+        K = min(size(mp1,1),4);
         idx = randperm(size(mp1,1),K);
         mp11 = mp1(idx,:);
         mp22 = mp2(idx,:);
@@ -26,8 +26,14 @@ function H = homography_solveRANSAC(mp1, mp2, ransacTh)
     mp11 = mp1(inlierLocations,:);
     mp22 = mp2(inlierLocations,:);
     
-    H = homog_solve(mp11',mp22');
-    
+    if size(mp11,1) < 4
+        % If none of the random samples reached a valid consensus then just
+        % use the full set of matched points. Results will definitely be
+        % bad but it avoids the error message interrupting the program
+        H = homog_solve(mp1',mp2');
+    else    
+        H = homog_solve(mp11',mp22');
+    end  
     
 end
 

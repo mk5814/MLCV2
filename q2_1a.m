@@ -2,18 +2,17 @@ addpath('harris')
 addpath('transformation')
 
 vis = 1;
-readnew = 0;
+readnew = 1;
 
 tic
 if readnew
     I1 = imread('images/boat/img1.pgm');
-%     I2 = imread('images/boat/img2.pgm');
-%     I3 = imread('images/boat/img3.pgm');
     I2 = imresize(I1,0.5);
     I3 = imresize(I1,1/3);
     if length(size(I1)) == 3
         I1 = rgb2gray(I1);
         I2 = rgb2gray(I2);
+        I3 = rgb2gray(I3);
     end
 
     I1 = im2single(I1);
@@ -39,15 +38,16 @@ if readnew
 end
 
 
-ransacTh = 70;
+ransacTh = 50;
 
+% NOTE: HA is only high in H12 because of a few outliers in the matched
+% points which have a distance >300. The actual image(turn vis on) is
+% actually a reasonably close match
 H12 = homography_solveRANSAC(mp12_2, mp12_1, ransacTh);
-% H = homography_solve(mp12_2', mp12_1');
 [HA, ~] = homography_accuracy(H12, mp12_2, mp12_1);
 fprintf('HA = %.1f\n',HA)   
 
 H13 = homography_solveRANSAC(mp13_3, mp13_1, ransacTh);
-% H = homography_solve(mp13_3', mp13_1');
 [HA, ~] = homography_accuracy(H13, mp13_3, mp13_1);
 fprintf('HA = %.1f\n',HA)   
 
