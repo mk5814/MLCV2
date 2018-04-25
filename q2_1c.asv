@@ -1,13 +1,12 @@
 addpath('harris')
 addpath('transformation')
 
-readnew = 1;
+readnew = 0;
 
 tic
 if readnew
-    clear
-    I1 = imread('images/rescaled/0.jpg');
-    I2 = imread('images/rescaled/1.jpg');
+    I1 = imread('images/rescaled/00.jpg');
+    I2 = imread('images/rescaled/11.jpg');
     if length(size(I1)) == 3
         I1 = rgb2gray(I1);
         I2 = rgb2gray(I2);        
@@ -83,7 +82,7 @@ plot(N,HA_ransac,'bx-');
 xlabel('Number of Correspondences Used');
 ylabel('Homography Accuracy');
 title('HA as a function of # of Correspondences Used(RANSAC)')
-axis([0,inf,0,inf])
+axis([0,inf0,inf])
 grid minor
 
 

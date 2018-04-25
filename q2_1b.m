@@ -2,12 +2,12 @@ addpath('harris')
 addpath('transformation')
 
 vis = 1;
-readnew = 0;
+readnew = 1;
 
 tic
 if readnew
-    I1 = imread('images/boat/img1.pgm');
-    I2 = imread('images/boat/img2.pgm');
+    I1 = imread('images/rescaled/00.jpg');
+    I2 = imread('images/rescaled/11.jpg');
     if length(size(I1)) == 3
         I1 = rgb2gray(I1);
         I2 = rgb2gray(I2);
@@ -38,13 +38,13 @@ ransacTh = 50;
 % actually a reasonably close match
 Hauto = homography_solveRANSAC(mp12_2, mp12_1, ransacTh);
 [HAauto, ~] = homography_accuracy(Hauto, mp12_2, mp12_1);
-fprintf('HA = %.1f\n',HAauto)     
+fprintf('(Auto)HA = %.1f\n',HAauto)     
 
 % Load Manual POI from q1_1.m
-load images/boat_img1_2.mat
+load images/rescaled_00_11.mat
 Hmanual = homography_solveRANSAC(MP2,MP1,ransacTh);
 [HAmanual, ~] = homography_accuracy(Hmanual, MP2, MP1);
-fprintf('HA = %.1f\n',HAmanual)     
+fprintf('(Manual)HA = %.1f\n',HAmanual)     
 
 if vis
     figure;

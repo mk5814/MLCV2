@@ -2,11 +2,14 @@ clear
 close all
 
 %% Begin program
-
+addpath('images/rescaled');
 numPoints = 10;
 
-im1 = imread('images/boat/img1.pgm');
-im2 = imread('images/boat/img2.pgm');
+% im1 = imread('images/rescaled/img1.pgm');
+% im2 = imread('images/boat/img2.pgm');
+im1 = rgb2gray(imread('00.jpg'));
+im2 = rgb2gray(imread('11.jpg'));
+
 
 figure(1);
 imshow(im1);
@@ -27,7 +30,7 @@ for i = 1:numPoints
 end
 close all;
 
-save('images/boat_img1_2','MP1','MP2');
+save('images/rescaled_00_11','MP1','MP2');
 
 
 

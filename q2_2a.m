@@ -1,10 +1,10 @@
 addpath('harris')
 addpath('transformation')
-vis = 0;
+vis = 1;
 if ~exist('MP1')
     clearvars -except vis
-    I1 = imread('images/tsukuba/scene1.row3.col1.ppm');
-    I2 = imread('images/tsukuba/scene1.row3.col2.ppm');
+    I1 = imread('images/rescaled/0.jpg');
+    I2 = imread('images/rescaled/1.jpg');
 
     if length(size(I1)) == 3
         I1 = rgb2gray(I1);
