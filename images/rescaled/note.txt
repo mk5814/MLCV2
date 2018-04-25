@@ -1,0 +1,4 @@
+0,1,2 - moving camera sideways
+00,11,22 - zoom and rotate
+
+0 and 00 are ground truth for each case
