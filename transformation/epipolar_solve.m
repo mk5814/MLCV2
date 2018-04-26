@@ -1,12 +1,6 @@
-function [m, c] = epipolar_solve(F, xcord, ycord)
-    % Find epipolar line in I2 given fundamental matrix
+function [m, c, EPleft, EPright] = epipolar_solve(F, xcord, ycord)
+    % Find epipolar line in I2 given fundamental matrix and point
     ELcoeff = F*[xcord ycord 1]';
     m = -ELcoeff(1)/ELcoeff(2);
     c = -ELcoeff(3)/ELcoeff(2);
-%     % Find epipoles, left and right null space of fundamental matrix
-%     [U,~,D] = svd(F);
-%     EPleft = U(:,end);
-%     EPleft = EPleft/EPleft(end);
-%     EPright = D(:,end);
-%     EPright = EPright/EPright(end);
 end
