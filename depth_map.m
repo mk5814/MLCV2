@@ -1,23 +1,27 @@
-function map = depth_map(dispMap,f,d)   
+function map = depth_map(dispMap,f,b)      
     sz = size(dispMap);
-    szCCD = [0.158,0.236];
+    szCCD = 0.236;
     map = zeros(sz);
     for y = 1:sz(1)
         for x = 1:sz(2)   
-            i1ccd = (x-sz(2)/2)/(sz(2)*szCCD(2));
-            i2ccd = (x-dispMap(y,x)-sz(2)/2)/(sz(2)*szCCD(2));
-            if i2ccd == 0
+            p = (x-sz(2)/2)/(sz(2)*szCCD);
+            q = (x-dispMap(y,x)-sz(2)/2)/(sz(2)*szCCD);
+            if q == 0
                 continue
             end
-            m1 = f/i1ccd;
-            m2 = f/i2ccd;
-            if i1ccd == 0
-                map(y,x) = -m2*d;
+            m1 = f/p;
+            m2 = f/q;
+            if p == 0
+                map(y,x) = m2*b;
                 continue
             end
-            if m1-m2 ~= 0
-                map(y,x) = (m1*m2*d)/(m2-m1);
+            if p-q ~= 0
+                map(y,x) = (f*b)/(p-q); 
             end            
         end
     end
+    % Clip outlying results
+    map(map>1) = 1;
+    map(map<0) = 0;
+%     map = 1-map;
 end

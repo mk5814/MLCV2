@@ -77,28 +77,28 @@ lines = lines(:,2:3);
 %% Compute Disparity of Images
 dispMap = abs(disparity(I1,I2));
 %% Compare to ground truth
-GTdepth = im2single(imread('images/tsukuba/truedisp.row3.col3.pgm'));
-bb = linspace(0.05,0.2,10);
-ff = linspace(0.01,1,100);
-minerr = inf;
-for b = bb
-    for f = ff
-        dm = depth_map(dispMap,f,b);
-        % err = mse(dm,GTdepth);
-        err = abs(max(max(dm(50:end-50,50:end-50))-max(GTdepth(50:end-50,50:end-50))));
-        if err < minerr
-            minerr = err;
-            best = dm;
-            bestf = f;
-            bestb = b;
-            % fprintf('New best (f,b) = (%.2f,%.2f)\n',f,b)
-        end
-    end
-end
-% bestf = 0.34; bestb = 0.05;
+% GTdepth = im2single(imread('images/tsukuba/truedisp.row3.col3.pgm'));
+% bb = linspace(0.05,0.2,10);
+% ff = linspace(0.01,1,100);
+% minerr = inf;
+% for b = bb
+%     for f = ff
+%         dm = depth_map(dispMap,f,b);
+%         % err = mse(dm,GTdepth);
+%         err = abs(max(max(dm(50:end-50,50:end-50))-max(GTdepth(50:end-50,50:end-50))));
+%         if err < minerr
+%             minerr = err;
+%             best = dm;
+%             bestf = f;
+%             bestb = b;
+%             % fprintf('New best (f,b) = (%.2f,%.2f)\n',f,b)
+%         end
+%     end
+% end
+bestf = 0.34; bestb = 0.05;
 f = bestf;
 b = bestb;
-depthMap = best;
+depthMap = depth_map(dispMap,f,b);
 fprintf('Best f = %.2f, Best b = %.2f\n',bestf,bestb)
 %% VISUALISATION OF RESULTS
 if vis
@@ -131,9 +131,13 @@ if vis2
 %     figure;
 %     imshow(dispMap);
     % Depth Map
-    
+    dmsort = sort(depthMap(:));
+    % Remove outliers when finding range of image
+    dmsort = dmsort(1000:end-1000);
+    dmr = [min(dmsort),max(dmsort)];
     figure;
-    imshow(depthMap);
+    imshow(depthMap,dmr);
+    colormap(gca,jet)
     title('Reconstructed Depth Map');
     % Ground Truth Depth Map
     figure;
