@@ -1,10 +1,13 @@
 addpath('harris')
 addpath('transformation')
-vis = 1;
+vis = 0;
+vis2 = 1;
 
-clearvars -except vis
-I1 = imread('images/rescaled/0.jpg');
-I2 = imread('images/rescaled/1.jpg');
+clearvars -except vis vis2
+I1 = imread('images/tsukuba/scene1.row3.col1.ppm');
+I2 = imread('images/tsukuba/scene1.row3.col2.ppm');
+% I1 = imread('images/rescaled/0.jpg');
+% I2 = imread('images/rescaled/1.jpg');
 
 if length(size(I1)) == 3
     I1 = rgb2gray(I1);
@@ -65,6 +68,38 @@ lines = lines(:,2:3);
 
 [isin1, ~] = isEpipoleInImage(F,size(I1));
 [isin2, ~] = isEpipoleInImage(F',size(I2));
+
+
+% %% Stereo Rectification
+% % f= 4.42mm (29mm equivalent?)
+
+%% Compute Disparity of Images
+dispMap = disparity(I1,I2);
+%% Compare to ground truth
+GTdepth = im2single(imread('images/tsukuba/truedisp.row3.col3.pgm'));
+bb = linspace(0.05,0.2,10);
+ff = linspace(0.01,1,100);
+minerr = inf;
+for b = bb
+    for f = ff
+        dm = depth_map(dispMap,f,b);
+        % err = mse(dm,GTdepth);
+        err = abs(max(max(dm(50:end-50,50:end-50))-max(GTdepth(50:end-50,50:end-50))));
+        if err < minerr
+            minerr = err;
+            best = dm;
+            bestf = f;
+            bestb = b;
+            % fprintf('New best (f,b) = (%.2f,%.2f)\n',f,b)
+        end
+    end
+end
+% bestf = 0.34; bestb = 0.05;
+f = bestf;
+b = bestb;
+depthMap = best;
+fprintf('Best f = %.2f, Best b = %.2f\n',bestf,bestb)
+%% VISUALISATION OF RESULTS
 if vis
     offset = size(I1,2);
     figure
@@ -81,13 +116,29 @@ if vis
     for i = 1:size(M2,1)
         draw_line(M2(i), C2(i), size(I1), 0,'g'); hold on;
     end        
+    scatter(EP(:,1),EP(:,2),'marker','sq','MarkerFaceColor','r');  
     title('Epipolar Lines and Epipoles for Selected Points');  
     if isin1 || isin2
         legend('Inliers','Epipoles','Epipolar Lines')
     else
         legend('Inliers','Epipoles Out of Bounds','Epipolar Lines')
     end
-    hold off    
+    hold off        
+end
+if vis2
+    % Disparity Map
+%     figure;
+%     imshow(dispMap);
+    % Depth Map
+    
+    figure;
+    imshow(depthMap);
+    title('Reconstructed Depth Map');
+    % Ground Truth Depth Map
+    figure;
+    GTdepth = im2single(imread('images/tsukuba/truedisp.row3.col3.pgm'));
+    imshow(GTdepth)
+    title('Ground Truth')
 end
 
 toc

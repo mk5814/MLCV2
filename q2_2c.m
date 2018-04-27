@@ -1,3 +1,4 @@
+% 4.42mm (29mm equivalent) FOCAL LENGTH
 addpath('harris')
 addpath('transformation')
 vis = 1;
@@ -63,8 +64,21 @@ lines = lines(:,2:3);
 
 [EPleft,EPright] = epipole_solve(F);
 
-[isin1, ~] = isEpipoleInImage(F1,size(I1));
-[isin2, er] = isEpipoleInImage(F1',size(I2));
+[isin1, ~] = isEpipoleInImage(F,size(I1));
+[isin2, ~] = isEpipoleInImage(F',size(I2));
+
+disparityMap = disparity(I1,I2);
+% z = f*b/d ---- b is distance between camera positions(20cm?)
+% f= 4.42mm (29mm equivalent?)
+f = 0.00442;
+b = 0.2;
+I1z = disparityMap.*(f/b);
+J1 = zeros([size(I1),2]);
+J1(:,:,1) = I1;
+J1(:,:,2) = I1z;
+
+
+%% VISUALISATION OF RESULTS
 if vis
     offset = size(I1,2);
     figure
@@ -81,9 +95,16 @@ if vis
     for i = 1:size(M2,1)
         draw_line(M2(i), C2(i), size(I1), 0,'g'); hold on;
     end        
-    title('Epipolar Lines and Epipoles for Selected Points');    
-    legend('Inliers','Epipoles','Epipolar Lines')
+    title('Epipolar Lines and Epipoles for Selected Points');  
+    if isin1 || isin2
+        legend('Inliers','Epipoles','Epipolar Lines')
+    else
+        legend('Inliers','Epipoles Out of Bounds','Epipolar Lines')
+    end
     hold off    
+    % Disparity Map
+    figure;
+    imshow(disparityMap);
 end
 
 toc

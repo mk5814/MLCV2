@@ -1,0 +1,35 @@
+function map = depth_map(dispMap,f,d)    
+    szCCD = [0.158,0.236];
+    for y = 1:size(dispMap,1)
+        for x = 1;size(dispMap,2)    
+            i1ccd = (x-s
+        end
+    end
+    
+    
+   s z = s i z e ( d i s p a r i t y ma p ) ;
+CCD SIZE = [ 0 . 1 5 8 0 . 2 3 6 ] ;
+f o c a l l e n g t h = 0 . 1 8 ;
+d i s t a n c e = 0 . 1 ;
+f o r y = 1 : s z ( 1 )
+f o r x = 1 : s z ( 2 )
+im 1 CCD = ( x?s z ( 2 ) / 2 ) / s z ( 2 ) * CCD SIZE ( 2 ) ;
+im 2 CCD = ( x?d i s p a r i t y ma p ( y , x ) ? s z ( 2 ) / 2 ) / s z ( 2 ) * CCD SIZE ( 2 ) ;
+i f im 2 CCD == 0
+c o n t i n u e
+end
+m 1 = f o c a l l e n g t h / im 1 CCD ;
+m 2 = f o c a l l e n g t h / im 2 CCD ;
+i f im 1 CCD == 0
+depth map ( y , x ) = ? m 2 * d i s t a n c e ;
+c o n t i n u e ;
+end
+i f (m 2 ? m 1 ) ˜= 0
+depth map ( y , x ) = (m 1 * m 2 * d i s t a n c e ) / (m 2 ? m 1 ) ;
+end
+end
+end
+end
+    
+    
+end
