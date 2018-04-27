@@ -28,12 +28,13 @@ map = nnMatch(f1, f2, 0.6);
 
 MP1 = validpts1(map(:,1),:);
 MP2 = validpts2(map(:,2),:);
-% if vis
-%     figure;
-%     showMatchedFeatures(I1,I2,MP1,MP2);    
-% end
 tic
 %% Map I1 to I2
+H = homography_solveRANSAC(MP2, MP1, 5);
+[HA, ~] = homography_accuracy(H, MP2, MP1);
+fprintf('(Auto)HA = %.1f\n',HA)  
+% imshow(homography_transform(I2,H,'projective'))
+%% Carry on
 % Estimate Fundamental Accuracy
 [F, inliers] = estimateFundamentalMatrix(MP1,...
     MP2,'Method','RANSAC',...
@@ -74,7 +75,7 @@ lines = lines(:,2:3);
 % % f= 4.42mm (29mm equivalent?)
 
 %% Compute Disparity of Images
-dispMap = disparity(I1,I2);
+dispMap = abs(disparity(I1,I2));
 %% Compare to ground truth
 GTdepth = im2single(imread('images/tsukuba/truedisp.row3.col3.pgm'));
 bb = linspace(0.05,0.2,10);

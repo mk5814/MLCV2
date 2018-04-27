@@ -12,7 +12,7 @@ function map = depth_map(dispMap,f,d)
             m1 = f/i1ccd;
             m2 = f/i2ccd;
             if i1ccd == 0
-                map(y,x) = m2*d;
+                map(y,x) = -m2*d;
                 continue
             end
             if m1-m2 ~= 0

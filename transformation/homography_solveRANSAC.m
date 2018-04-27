@@ -1,7 +1,7 @@
 % Witch RANSAC
 function H = homography_solveRANSAC(mp1, mp2, ransacTh)
     
-    numTrials = 500;
+    numTrials = 2000;
     inliers = cell(1,numTrials);
     for i = 1:numTrials    
         K = 4;
