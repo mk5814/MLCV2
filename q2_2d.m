@@ -1,7 +1,7 @@
 addpath('harris')
 addpath('transformation')
 vis = 0;
-vis2 = 1;
+vis2 = 0;
 
 clearvars -except vis vis2
 I1 = imread('images/tsukuba/scene1.row3.col1.ppm');
@@ -28,12 +28,13 @@ map = nnMatch(f1, f2, 0.6);
 
 MP1 = validpts1(map(:,1),:);
 MP2 = validpts2(map(:,2),:);
-% if vis
-%     figure;
-%     showMatchedFeatures(I1,I2,MP1,MP2);    
-% end
 tic
 %% Map I1 to I2
+H = homography_solveRANSAC(MP2, MP1, 5);
+[HA, ~] = homography_accuracy(H, MP2, MP1);
+fprintf('(Auto)HA = %.1f\n',HA)  
+% imshow(homography_transform(I2,H,'projective'))
+%% Carry on
 % Estimate Fundamental Accuracy
 [F, inliers] = estimateFundamentalMatrix(MP1,...
     MP2,'Method','RANSAC',...
@@ -73,38 +74,25 @@ lines = lines(:,2:3);
 % %% Stereo Rectification
 % % f= 4.42mm (29mm equivalent?)
 
-%% Compute Disparity of Stereo Rectified Images J1 J2
-dispMap = disparity(I2,I1);
-% dispMap1 = disparity_map(I1,I2,7,1);
-% z = f*b/d ---- b is distance between camera positions(20cm?)
-b = 0.01;
-f = 0.05;
-% depthMap = dispMap.*(f/b);
-depthMap = depth_map(dispMap,f,b);
-% %% Compare to ground truth
-% GTdepth = im2single(imread('images/tsukuba/truedisp.row3.col3.pgm'));
-% bb = linspace(0.05,0.2,10);
-% ff = linspace(0.01,1,100);
-% minerr = inf;
-% for b = bb
-%     for f = ff
-%         dm = depth_map(dispMap,f,b);
-%         % err = mse(dm,GTdepth);
-%         err = abs(max(max(dm(50:end-50,50:end-50))-max(GTdepth(50:end-50,50:end-50))));
-%         if err < minerr
-%             minerr = err;
-%             best = dm;
-%             bestf = f;
-%             bestb = b;
-%             % fprintf('New best (f,b) = (%.2f,%.2f)\n',f,b)
-%         end
-%     end
-% end
-bestf =
+%% Compute Disparity of Images
+dispMap = (disparity(I1,I2));
+dispMap(dispMap<-max(dispMap(:))) = -max(dispMap(:));
+%% Compute Depth Map
+bestf = 0.34; bestb = 0.05;
 f = bestf;
 b = bestb;
 depthMap = depth_map(dispMap,f,b);
-fprintf('Best f = %.2f, Best b = %.2f\n',bestf,bestb)
+% %% Construct 3D depth map
+% [X,Y] = meshgrid(1:size(I1,2),size(I1,1):-1:1);
+% Z = zeros(size(X));
+% for xx = 1:size(I1,2)
+%     for yy = 1:size(I1,1)
+%         Z(yy,xx) = depthMap(yy,xx);
+%     end
+% end
+% surf(X,Y,Z,Z)
+%% Compute Depth Map for changed focal length and with added noise
+dispmapnoisy = conv2(dispMap, g, 'same'); % Smoothed squared image derivatives
 %% VISUALISATION OF RESULTS
 if vis
     offset = size(I1,2);
@@ -136,9 +124,13 @@ if vis2
 %     figure;
 %     imshow(dispMap);
     % Depth Map
-    
+    dmsort = sort(depthMap(:));
+    % Remove outliers when finding range of image
+    dmsort = dmsort(1000:end-1000);
+    dmr = [min(dmsort),max(dmsort)];
     figure;
-    imshow(depthMap);
+    imshow(depthMap,dmr);
+    colormap(gca,jet)
     title('Reconstructed Depth Map');
     % Ground Truth Depth Map
     figure;

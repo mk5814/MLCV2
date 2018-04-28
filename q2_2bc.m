@@ -1,13 +1,13 @@
 addpath('harris')
 addpath('transformation')
-vis = 0;
+vis = 1;
 vis2 = 1;
 
 clearvars -except vis vis2
 I1 = imread('images/tsukuba/scene1.row3.col1.ppm');
 I2 = imread('images/tsukuba/scene1.row3.col2.ppm');
-% I1 = imread('images/rescaled/0.jpg');
-% I2 = imread('images/rescaled/1.jpg');
+I1 = imread('images/rescaled/l1.jpg');
+I2 = imread('images/rescaled/r1.jpg');
 
 if length(size(I1)) == 3
     I1 = rgb2gray(I1);
@@ -30,10 +30,12 @@ MP1 = validpts1(map(:,1),:);
 MP2 = validpts2(map(:,2),:);
 tic
 %% Map I1 to I2
-H = homography_solveRANSAC(MP2, MP1, 5);
-[HA, ~] = homography_accuracy(H, MP2, MP1);
+H1 = homography_solveRANSAC(MP2, MP1, 5);
+[HA, ~] = homography_accuracy(H1, MP2, MP1);
 fprintf('(Auto)HA = %.1f\n',HA)  
-% imshow(homography_transform(I2,H,'projective'))
+H2 = homography_solveRANSAC(MP1, MP2, 5);
+[HA, ~] = homography_accuracy(H2, MP1, MP2);
+fprintf('(Auto)HA = %.1f\n',HA)  
 %% Carry on
 % Estimate Fundamental Accuracy
 [F, inliers] = estimateFundamentalMatrix(MP1,...
@@ -71,11 +73,11 @@ lines = lines(:,2:3);
 [isin2, ~] = isEpipoleInImage(F',size(I2));
 
 
-% %% Stereo Rectification
+%% Stereo Rectification
 % % f= 4.42mm (29mm equivalent?)
-
+% J2 = homography_transform(I2,H,'projective');
 %% Compute Disparity of Images
-dispMap = abs(disparity(I1,I2));
+dispMap = (disparity(I1,I2));
 %% Compare to ground truth
 % GTdepth = im2single(imread('images/tsukuba/truedisp.row3.col3.pgm'));
 % bb = linspace(0.05,0.2,10);
@@ -95,7 +97,8 @@ dispMap = abs(disparity(I1,I2));
 %         end
 %     end
 % end
-bestf = 0.34; bestb = 0.05;
+% bestf = 0.34; bestb = 0.05; % For Tsukuba
+bestf = 0.4; bestb = 0.1; %For OnePlus 5 Camera
 f = bestf;
 b = bestb;
 depthMap = depth_map(dispMap,f,b);
@@ -135,15 +138,11 @@ if vis2
     % Remove outliers when finding range of image
     dmsort = dmsort(1000:end-1000);
     dmr = [min(dmsort),max(dmsort)];
+    dmr = [0,0.3]; % For OnePlus5 images
     figure;
     imshow(depthMap,dmr);
     colormap(gca,jet)
     title('Reconstructed Depth Map');
-    % Ground Truth Depth Map
-    figure;
-    GTdepth = im2single(imread('images/tsukuba/truedisp.row3.col3.pgm'));
-    imshow(GTdepth)
-    title('Ground Truth')
 end
 
 toc
