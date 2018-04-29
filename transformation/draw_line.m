@@ -9,6 +9,6 @@ y = m*x + c;
 x = x(y>0 & y<ylim) + offset;
 y = y(y>0 & y<ylim);
 
-plot(x,y,clr)
+plot(x,y,clr,'LineWidth',1)
 
 end

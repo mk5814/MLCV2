@@ -52,9 +52,9 @@ if vis
     I3 = horzcat(I1,I2);
     imshow(I3);
     hold on
-    scatter(xcord,ycord,'marker','O','MarkerEdgeColor','yellow'); 
+    scatter(xcord,ycord,'oy','filled'); 
     for i = 1:size(M,1)
-        draw_line(M(i), C(i), size(I2), size(I1,2)); hold on;        
+        draw_line(M(i), C(i), size(I2), size(I1,2),'g'); hold on;        
     end
     title('o-selected point, -- epipolar line');
     hold off    
