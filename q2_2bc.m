@@ -1,9 +1,11 @@
+rng(312)
 addpath('harris')
 addpath('transformation')
-vis = 1;
+vis = 0;
 vis2 = 1;
+vis3 = 0;
 
-clearvars -except vis vis2
+clearvars -except vis vis2 vis3
 I1 = imread('images/tsukuba/scene1.row3.col1.ppm');
 I2 = imread('images/tsukuba/scene1.row3.col2.ppm');
 I1 = imread('images/rescaled/l1.jpg');
@@ -29,13 +31,6 @@ map = nnMatch(f1, f2, 0.6);
 MP1 = validpts1(map(:,1),:);
 MP2 = validpts2(map(:,2),:);
 tic
-%% Map I1 to I2
-H1 = homography_solveRANSAC(MP2, MP1, 5);
-[HA, ~] = homography_accuracy(H1, MP2, MP1);
-fprintf('(Auto)HA = %.1f\n',HA)  
-H2 = homography_solveRANSAC(MP1, MP2, 5);
-[HA, ~] = homography_accuracy(H2, MP1, MP2);
-fprintf('(Auto)HA = %.1f\n',HA)  
 %% Carry on
 % Estimate Fundamental Accuracy
 [F, inliers] = estimateFundamentalMatrix(MP1,...
@@ -44,7 +39,6 @@ fprintf('(Auto)HA = %.1f\n',HA)
 % FA = fundamental_accuracy(F, MP1, MP2);
 FA = fundamental_accuracy(F, MP1(inliers,:), MP2(inliers,:));
 fprintf('FA using Inliers Only = %.5f\n',FA);
-
 % Random test points in I1(taken from matched points)
 % idx = randperm(size(MP1,1),10);
 mp1 = MP1(inliers,:);
@@ -76,73 +70,80 @@ lines = lines(:,2:3);
 %% Stereo Rectification
 % % f= 4.42mm (29mm equivalent?)
 % J2 = homography_transform(I2,H,'projective');
+[I1,I2] = stereo_rect(I1,I2,F,MP1,MP2);
 %% Compute Disparity of Images
-dispMap = (disparity(I1,I2));
-%% Compare to ground truth
-% GTdepth = im2single(imread('images/tsukuba/truedisp.row3.col3.pgm'));
-% bb = linspace(0.05,0.2,10);
-% ff = linspace(0.01,1,100);
-% minerr = inf;
-% for b = bb
-%     for f = ff
-%         dm = depth_map(dispMap,f,b);
-%         % err = mse(dm,GTdepth);
-%         err = abs(max(max(dm(50:end-50,50:end-50))-max(GTdepth(50:end-50,50:end-50))));
-%         if err < minerr
-%             minerr = err;
-%             best = dm;
-%             bestf = f;
-%             bestb = b;
-%             % fprintf('New best (f,b) = (%.2f,%.2f)\n',f,b)
-%         end
-%     end
-% end
+dispMap = abs(disparity(I1,I2));
+% Cap disparity between 0.0001 and a reasonable max
+% dispMap(dispMap<0.0001) = 0.0001;
+dispMap(dispMap>10000000) = 60;
+%% Add or dont add noise here
+% noise = 0.1*std(dispMap(:))*randn(size(dispMap));
+% dispMap = dispMap +  noise;
 % bestf = 0.34; bestb = 0.05; % For Tsukuba
-bestf = 0.4; bestb = 0.1; %For OnePlus 5 Camera
+bestf = 0.25; bestb = 0.15; %For OnePlus 5 Camera
 f = bestf;
 b = bestb;
-depthMap = depth_map(dispMap,f,b);
+% depthMap = depth_map(dispMap,f,b);
+depthMap = f*b*ones(size(dispMap))./dispMap;
 fprintf('Best f = %.2f, Best b = %.2f\n',bestf,bestb)
+
 %% VISUALISATION OF RESULTS
 if vis
     offset = size(I1,2);
     figure
-    I3 = horzcat(I1,I2);
-    imshow(I3);
+    title('Epipolar Lines and Epipoles for Selected Points');      
+    subplot(1,2,1)
+    imshow(I1);
     hold on
-    pts = [mp1; mp2+[offset,0]];
-    scatter(pts(:,1),pts(:,2),'marker','o','MarkerFaceColor','y');    
-    EP = [EPleft+[offset,0,0]; EPright];
-    scatter(EP(:,1),EP(:,2),'marker','sq','MarkerFaceColor','r');    
+    %scatter(mp1(:,1),mp1(:,2),'marker','o','MarkerFaceColor','y');    
+    scatter(EPleft(:,1),EPleft(:,2),'marker','sq','MarkerFaceColor','r');    
     for i = 1:size(M1,1)
-        draw_line(M1(i), C1(i), size(I2), size(I1,2),'g'); hold on;
+        draw_line(M1(i), C1(i), size(I1), 0,'g'); hold on;
     end
-    for i = 1:size(M2,1)
-        draw_line(M2(i), C2(i), size(I1), 0,'g'); hold on;
-    end        
-    scatter(EP(:,1),EP(:,2),'marker','sq','MarkerFaceColor','r');  
-    title('Epipolar Lines and Epipoles for Selected Points');  
-    if isin1 || isin2
-        legend('Inliers','Epipoles','Epipolar Lines')
+    if isin1
+        legend('Epipoles','Epipolar Lines')
     else
-        legend('Inliers','Epipoles Out of Bounds','Epipolar Lines')
+        legend('Epipoles Out of Bounds','Epipolar Lines')
+    end
+    subplot(1,2,2)
+    imshow(I2);
+    hold on
+    %scatter(mp2(:,1),mp2(:,2),'marker','o','MarkerFaceColor','y');    
+    scatter(EPright(:,1),EPright(:,2),'marker','sq','MarkerFaceColor','r');    
+    for i = 1:size(M2,1)
+        draw_line(M2(i), C2(i), size(I2), 0,'g'); hold on;
+    end
+    if isin2
+        legend('Epipoles','Epipolar Lines')
+    else
+        legend('Epipoles Out of Bounds','Epipolar Lines')
     end
     hold off        
 end
 if vis2
     % Disparity Map
-%     figure;
-%     imshow(dispMap);
+    figure;
+    dmsort = sort(dispMap(:));
+    dmr = [min(dmsort),max(dmsort)];
+    dmr = [0,80];
+    imshow(dispMap,dmr);
+    colormap(gca,parula);
+    title('Disparity Map')
     % Depth Map
     dmsort = sort(depthMap(:));
     % Remove outliers when finding range of image
     dmsort = dmsort(1000:end-1000);
     dmr = [min(dmsort),max(dmsort)];
-    dmr = [0,0.3]; % For OnePlus5 images
+    dmr = [0.0006,0.003]; % For OnePlus5 images
     figure;
     imshow(depthMap,dmr);
-    colormap(gca,jet)
-    title('Reconstructed Depth Map');
+    colormap(gca,parula)
+    title('Reconstructed Depth Map');    
+end
+if vis3
+    figure;
+    imshow(horzcat(I1,I2));
+    title('Stereo Rectified Pair')
 end
 
 toc

@@ -36,22 +36,22 @@ ransacTh = 50;
 % NOTE: HA is only high in H12 because of a few outliers in the matched
 % points which have a distance >300. The actual image(turn vis on) is
 % actually a reasonably close match
-Hauto = homography_solveRANSAC(mp12_2, mp12_1, ransacTh);
-[HAauto, ~] = homography_accuracy(Hauto, mp12_2, mp12_1);
+[Hauto,inliers1] = homography_solveRANSAC(mp12_2, mp12_1, ransacTh);
+[HAauto, ~] = homography_accuracy(Hauto, mp12_2(inliers1,:), mp12_1(inliers1,:));
 fprintf('(Auto)HA = %.1f\n',HAauto)     
 
 % Load Manual POI from q1_1.m
 load images/rescaled_00_11.mat
-Hmanual = homography_solveRANSAC(MP2,MP1,ransacTh);
-[HAmanual, ~] = homography_accuracy(Hmanual, MP2, MP1);
+[Hmanual,inliers2] = homography_solveRANSAC(MP2,MP1,ransacTh);
+[HAmanual, ~] = homography_accuracy(Hmanual, MP2(inliers2,:), MP1(inliers2,:));
 fprintf('(Manual)HA = %.1f\n',HAmanual)     
 
 if vis
     figure;
-    showMatchedFeatures(I1,I2,mp12_1,mp12_2);
+    showMatchedFeatures(I1,I2,mp12_1(inliers1,:),mp12_2(inliers1,:),'montage');
     title('Matched Features(Automatic)');
     figure;
-    showMatchedFeatures(I1,I2,MP1,MP2);
+    showMatchedFeatures(I1,I2,MP1(inliers2,:),MP2(inliers2,:),'montage');
     title('Matched Features(Manual)');
     
     I22 = homography_transform(I2,Hauto,'projective');

@@ -1,5 +1,5 @@
 % Witch RANSAC
-function H = homography_solveRANSAC(mp1, mp2, ransacTh)
+function [H,inlierLocations] = homography_solveRANSAC(mp1, mp2, ransacTh)
     
     numTrials = 2000;
     inliers = cell(1,numTrials);
